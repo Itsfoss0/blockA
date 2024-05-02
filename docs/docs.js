@@ -2,12 +2,12 @@
 
 /* documentation for the api */
 
-const docsRouter = require("express").Router();
+const docsRouter = require('express').Router();
 
-docsRouter.get("", async (req, res) => {
+docsRouter.get('', async (req, res) => {
   res.json({
-    message: "Movie Database API",
-    status: "OK",
+    message: 'Movie Database API',
+    status: 'OK'
   });
 });
 

@@ -2,12 +2,10 @@
 
 /* error handling middleware */
 
-const undefinedPathError = (req, resp, next) => {
-  resp.status(404).json({
-    error: "Not found",
-  });
+const undefinedPathHandler = (req, res) => {
+  return res.status(404).json({ error: 'URL not found' });
 };
 
 module.exports = {
-  undefinedPathError,
+  undefinedPathHandler
 };
