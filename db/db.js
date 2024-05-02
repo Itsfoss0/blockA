@@ -2,7 +2,7 @@
 
 /* configure the database */
 
-const mongoose = require("mongoose");
+const mongoose = require('mongoose');
 
 const connectDB = async (DATABASE_URL) => {
   await mongoose.connect(DATABASE_URL);

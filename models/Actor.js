@@ -1,37 +1,38 @@
-const mongoose = require("mongoose");
+const mongoose = require('mongoose');
 
 const actorSchema = new mongoose.Schema({
   firstName: {
     type: String,
-    required: true,
+    required: true
   },
   lastName: {
     type: String,
-    required: true,
+    required: true
   },
   profileAvatar: {
     type: String,
-    required: false,
+    default: 'https://github.com/Itsfoss0.png',
+    required: false
   },
   bio: {
-    type: String,
+    type: String
   },
   movies: [
     {
       type: mongoose.Types.ObjectId,
-      ref: "Movie",
-    },
-  ],
+      ref: 'Movie'
+    }
+  ]
 });
 
-actorSchema.set("toJSON", {
+actorSchema.set('toJSON', {
   transform: (document, returnedObject) => {
-    returnedObject.id = returnedObject._id.toString;
+    returnedObject.id = returnedObject._id.toString();
     delete returnedObject._id;
     delete returnedObject.__v;
-  },
+  }
 });
 
-const Actor = mongoose.model("Actor", actorSchema);
+const Actor = mongoose.model('Actor', actorSchema);
 
 module.exports = Actor;

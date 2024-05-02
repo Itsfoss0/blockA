@@ -5,15 +5,31 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "node index.js"
+    "dev": "nodemon index.js"
   },
   "author": "",
   "license": "ISC",
   "dependencies": {
     "amqplib": "^0.10.4",
+    "bcrypt": "^5.1.1",
+    "cookie-parser": "^1.4.6",
     "cors": "^2.8.5",
+    "debug": "^4.3.4",
+    "errors": "^0.3.0",
     "express": "^4.19.2",
+    "express-async-errors": "^3.1.1",
+    "handlebars": "^4.7.8",
+    "jade": "^1.11.0",
+    "jsonwebtoken": "^9.0.2",
+    "loadash": "^1.0.0",
+    "lodash": "^4.17.21",
     "mongoose": "^8.3.2",
-    "redis": "^4.6.13"
+    "morgan": "^1.10.0",
+    "nodemailer": "^6.9.13",
+    "nodemon": "^3.1.0",
+    "pug": "^3.0.2",
+    "redis": "^4.6.13",
+    "rootpath": "^0.1.2",
+    "swagger-ui": "^5.17.3"
   }
 }
