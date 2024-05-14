@@ -62,7 +62,6 @@ authRouter.get("/verify/:id", async (req, resp, next) => {
     const { id } = req.params;
     const token = req.query.token;
     const user = await User.findById(id);
-    console.log(req);
     const hashedVerifyToken = await Token.findOne({
       userId: id,
       action: "verify",
@@ -87,6 +86,15 @@ authRouter.get("/verify/:id", async (req, resp, next) => {
       );
 
       await hashedVerifyToken.deleteOne();
+      const data = {
+        name: user.name,
+      };
+      await sendEmail(
+        user.email,
+        "Your Account has been verified",
+        "verified",
+        data
+      );
       return resp.json({ status: "success", message: "user is verified" });
     }
   } catch (error) {
