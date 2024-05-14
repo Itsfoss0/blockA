@@ -32,6 +32,11 @@ authRouter.post("/register", async (req, resp, next) => {
 
     const token = crypto.randomBytes(32).toString("hex");
     const url = `${CLIENT_URL}auth/verify/${id}?token=${token}`;
+
+    const data = {
+      name: name,
+      link: url,
+    };
     const hashedToken = await bcrypt.hash(token, 10);
     await new Token({
       userId: newUser._id,
@@ -39,7 +44,7 @@ authRouter.post("/register", async (req, resp, next) => {
       token: hashedToken,
     }).save();
 
-    await sendEmail(email, "Confirm your account", "register", name, url);
+    await sendEmail(email, "Confirm your account", "register", data);
     return resp.status(201).json({
       status: "success",
       message: "new user created",
@@ -57,17 +62,18 @@ authRouter.get("/verify/:id", async (req, resp, next) => {
     const { id } = req.params;
     const token = req.query.token;
     const user = await User.findById(id);
+    console.log(req);
     const hashedVerifyToken = await Token.findOne({
       userId: id,
       action: "verify",
     });
-    if (user === null  || hashedVerifyToken === null) {
+    if (user === null || hashedVerifyToken === null) {
       return resp
         .status(403)
         .json({ error: "cannot verify account at this time" });
     }
 
-    console.log(hashedVerifyToken);
+    // console.log(hashedVerifyToken);
     const validVerifyToken = await bcrypt.compare(
       token,
       hashedVerifyToken.token
@@ -81,6 +87,7 @@ authRouter.get("/verify/:id", async (req, resp, next) => {
       );
 
       await hashedVerifyToken.deleteOne();
+      return resp.json({ status: "success", message: "user is verified" });
     }
   } catch (error) {
     next(error);
