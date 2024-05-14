@@ -3,7 +3,7 @@ const hbs = require("nodemailer-express-handlebars");
 const mailGun = require("nodemailer-mailgun-transport");
 const { API_KEY, DOMAIN } = require("../config/config");
 
-const sendEmail = async (email, subject, templateName, name, link) => {
+const sendEmail = async (email, subject, templateName, data) => {
   try {
     const transporter = nodemailer.createTransport(
       mailGun({
@@ -31,8 +31,7 @@ const sendEmail = async (email, subject, templateName, name, link) => {
       subject: subject,
       template: templateName,
       context: {
-        name, 
-        link
+          ...data,
       },
     });
 
