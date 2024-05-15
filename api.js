@@ -11,6 +11,7 @@ const actorRouter = require("./routes/actor.route");
 const docsRouter = require("./docs/docs");
 const moviesRouter = require("./routes/movie.route");
 const userRouter = require("./routes/user.route");
+statusRouter = require("./routes/status.route");
 const { undefinedPathHandler } = require("./middleware/error.middleware");
 const logger = require("./logging/logger");
 
@@ -21,6 +22,7 @@ api.use(express.json());
 api.use(cors());
 api.use(logger);
 api.use("/api/v1", docsRouter);
+api.use("/api/v1/status", statusRouter);
 api.use("/api/v1/auth", authRouter);
 api.use("/api/v1/actors", actorRouter);
 api.use("/api/v1/movies", moviesRouter);

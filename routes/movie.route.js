@@ -14,6 +14,7 @@ moviesRouter.use(tokenExtractor);
 moviesRouter.use(userExtractor);
 
 moviesRouter.get('', async (req, resp, next) => {
+  const limit = req.query.limit
   const movies = await Movie.find();
   try {
     if (movies.length > 0) return resp.json({ movies });

@@ -8,6 +8,7 @@ const jsonwebtoken = require('jsonwebtoken');
 const { JWT_SECRET_KEY, CLIENT_URL } = require('../config/config');
 const Token = require('../models/Token');
 const User = require('../models/User');
+const sendEmail = require('../services/sendEmail.service');
 
 const authRouter = require('express').Router();
 
@@ -27,8 +28,15 @@ authRouter.post('/register', async (req, resp, next) => {
       passwordHash
     });
     await newUser.save();
+    const id = newUser._id;
 
     const token = crypto.randomBytes(32).toString('hex');
+    const url = `${CLIENT_URL}auth/verify/${id}?token=${token}`;
+
+    const data = {
+      name,
+      link: url
+    };
     const hashedToken = await bcrypt.hash(token, 10);
     await new Token({
       userId: newUser._id,
@@ -36,6 +44,7 @@ authRouter.post('/register', async (req, resp, next) => {
       token: hashedToken
     }).save();
 
+    await sendEmail(email, 'Confirm your account', 'register', data);
     return resp.status(201).json({
       status: 'success',
       message: 'new user created',
@@ -48,7 +57,7 @@ authRouter.post('/register', async (req, resp, next) => {
 
 // verify account functionality
 
-authRouter.post('/verify/:id', async (req, resp, next) => {
+authRouter.get('/verify/:id', async (req, resp, next) => {
   try {
     const { id } = req.params;
     const token = req.query.token;
@@ -57,14 +66,17 @@ authRouter.post('/verify/:id', async (req, resp, next) => {
       userId: id,
       action: 'verify'
     });
-    if (!user || !hashedVerifyToken) {
+    if (user === null || hashedVerifyToken === null) {
       return resp
         .status(403)
         .json({ error: 'cannot verify account at this time' });
     }
 
-    console.log(hashedVerifyToken);
-    const validVerifyToken = bcrypt.compare(token, hashedVerifyToken.token);
+    // console.log(hashedVerifyToken);
+    const validVerifyToken = await bcrypt.compare(
+      token,
+      hashedVerifyToken.token
+    );
     // account is valid
     if (validVerifyToken) {
       await User.updateOne(
@@ -74,6 +86,16 @@ authRouter.post('/verify/:id', async (req, resp, next) => {
       );
 
       await hashedVerifyToken.deleteOne();
+      const data = {
+        name: user.name
+      };
+      await sendEmail(
+        user.email,
+        'Your Account has been verified',
+        'verified',
+        data
+      );
+      return resp.json({ status: 'success', message: 'user is verified' });
     }
   } catch (error) {
     next(error);
@@ -129,17 +151,24 @@ authRouter.post('/forgot', async (req, res, next) => {
   if (token) {
     await token.deleteOne();
   }
-  const resetToken = crypto.randomBytes(32).toString('hex');
+  const resetToken = crypto.randomBytes(8).toString('hex');
   const resetTokenHash = await bcrypt.hash(resetToken, 10);
 
   await new Token({
     userId: user._id,
+    action: 'reset',
     token: resetTokenHash,
     createdAt: Date.now()
   }).save();
 
-  const link = `${CLIENT_URL}/reset?token${resetToken}`;
-  // send the reset link to user.email
+  const link = `${CLIENT_URL}/auth/reset?token=${resetToken}`;
+
+  const data = {
+    name: user.name,
+    otp: resetToken
+  };
+
+  await sendEmail(user.email, 'Forgot Password', 'reset', data);
   return res.json({
     status: 'sucess',
     link,
@@ -158,7 +187,7 @@ authRouter.post('/reset/:id', async (req, resp, next) => {
   if (!user) {
     return resp.status(403).json({ error: 'password reset failed' });
   }
-  const userResetToken = await Token.findOne({ userId: id });
+  const userResetToken = await Token.findOne({ userId: id, action: 'reset' });
   if (!userResetToken) {
     return resp
       .status(401)
@@ -166,7 +195,7 @@ authRouter.post('/reset/:id', async (req, resp, next) => {
   }
 
   // compare reset token stored with the one passed as a query param
-  const validToken = bcrypt.compare(token, userResetToken.token);
+  const validToken = await bcrypt.compare(token, userResetToken.token);
   if (!validToken) {
     return resp.status(403).json({ error: 'Invalid or expired reset token' });
   }
@@ -177,6 +206,9 @@ authRouter.post('/reset/:id', async (req, resp, next) => {
   await userResetToken.deleteOne();
 
   const newUser = await User.findById(id);
+  await sendEmail(user.email, 'Your password has been reset', 'success', {
+    name: user.name
+  });
   return resp.json({ message: 'password reset', user: newUser });
 });
 
